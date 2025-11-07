@@ -22,11 +22,12 @@ pthread_mutex_t runway2_lock = PTHREAD_MUTEX_INITIALIZER;
 #define SH_MEMORY_NAME "/air_control_shm"
 #define SH_MEMORY_SIZE sizeof(pid_t) * 3
 pid_t* shared_memory;
+int shm_fd;
 
-
+// TODO 1: Function to create shared memory segment
 void MemoryCreate() {
   // Create shared memory segment
-  int shm_fd = shm_open(SH_MEMORY_NAME, O_CREAT | O_RDWR, 0666);
+  shm_fd = shm_open(SH_MEMORY_NAME, O_CREAT | O_RDWR, 0666);
   if (shm_fd == -1) {
     perror("shm_open failed");
     exit(EXIT_FAILURE);
@@ -50,12 +51,14 @@ void MemoryCreate() {
   shared_memory[0] = getpid();
 }
 
+// TODO 2: Signal handler for SIGUSR2
 void SigHandler2(int signal) {
     // Increment planes by 5
     planes += 5;
     fprintf(stderr, "Signal SIGUSR2 received: Incremented planes by 5. Total planes: %d\n", planes);
 }
 
+// TODO 4: Function executed by controller threads
 void* TakeOffsFunction() {
   // Variable
   int current_runway;
@@ -73,6 +76,7 @@ void* TakeOffsFunction() {
       continue;
     }
 
+    // TODO 5: Synchronize access to shared variables using mutexes
     // Runway found - perform takeoff
     pthread_mutex_lock(&state_lock);
     planes--;
@@ -97,6 +101,7 @@ void* TakeOffsFunction() {
     }
   }
 
+  // TODO 6: Send SIGUSR1 once takeoffs reach maximum (20).
   // Terminate the process after completing max takeoffs
   kill(getpid(), SIGTERM);
   return NULL;
