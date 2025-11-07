@@ -11,7 +11,6 @@
 int planes = 0;
 int takeoffs = 0;
 int total_takeoffs = 0;
-#define TOTAL_TAKEOFFS 20
 
 // Mutexes
 pthread_mutex_t state_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -19,12 +18,10 @@ pthread_mutex_t runway1_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t runway2_lock = PTHREAD_MUTEX_INITIALIZER;
 
 // Shared memory pointer
-#define SH_MEMORY_NAME "/air_control_shm"
-#define SH_MEMORY_SIZE sizeof(pid_t) * 3
 pid_t* shared_memory;
 int shm_fd;
 
-// TODO 1: Function to create shared memory segment
+// TODO(HectorRivera1) 1: Function to create shared memory segment
 void MemoryCreate() {
   // Create shared memory segment
   shm_fd = shm_open(SH_MEMORY_NAME, O_CREAT | O_RDWR, 0666);
@@ -51,20 +48,26 @@ void MemoryCreate() {
   shared_memory[0] = getpid();
 }
 
-// TODO 2: Signal handler for SIGUSR2
+// TODO(HectorRivera1) 2: Signal handler for SIGUSR2
 void SigHandler2(int signal) {
     // Increment planes by 5
     planes += 5;
-    fprintf(stderr, "Signal SIGUSR2 received: Incremented planes by 5. Total planes: %d\n", planes);
+    // fprintf(stderr, "Signal SIGUSR2 received: Incremented planes by 5. Total planes: %d\n", planes);
 }
 
-// TODO 4: Function executed by controller threads
+// TODO(HectorRivera1) 4: Function executed by controller threads
 void* TakeOffsFunction() {
   // Variable
   int current_runway;
 
   // Loop until total takeoffs reach the limit
   while (total_takeoffs < TOTAL_TAKEOFFS) {
+    if (planes <= 0) {
+      // No planes available for takeoff, wait and retry
+      usleep(1000);
+      continue;
+    }
+
     // Try to acquire a runway
     if (pthread_mutex_trylock(&runway1_lock) == 0) {
       current_runway = 1;
@@ -76,17 +79,19 @@ void* TakeOffsFunction() {
       continue;
     }
 
-    // TODO 5: Synchronize access to shared variables using mutexes
+    // TODO(HectorRivera1) 5: Synchronize access to shared variables using mutexes
     // Runway found - perform takeoff
     pthread_mutex_lock(&state_lock);
     planes--;
     takeoffs++;
     total_takeoffs++;
-    fprintf(stderr, "Takeoff from runway %d. Remaining planes: %d\n", current_runway, planes);
+    // fprintf(stderr, "Takeoff from runway %d. Remaining planes: %d\n", current_runway, planes);
 
     // Signal if 5 takeoffs have occurred
     if (takeoffs == 5) {
-      kill(getpid(), SIGUSR1);
+      // fprintf(stderr, "5 takeoffs completed. Sending SIGUSR1 to ground control.\n");
+      kill(shared_memory[1], SIGUSR1);
+      kill(shared_memory[2], SIGUSR1);
       takeoffs = 0;
     }
 
@@ -101,8 +106,11 @@ void* TakeOffsFunction() {
     }
   }
 
-  // TODO 6: Send SIGUSR1 once takeoffs reach maximum (20).
+  // TODO(HectorRivera1) 6: Send SIGUSR1 once takeoffs reach maximum (20).
   // Terminate the process after completing max takeoffs
-  kill(getpid(), SIGTERM);
+  if (total_takeoffs >= 20) {
+    // fprintf(stderr, "Maximum takeoffs reached. Terminating process.\n");
+    kill(shared_memory[1], SIGTERM);
+  }
   return NULL;
 }
