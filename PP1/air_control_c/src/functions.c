@@ -37,7 +37,8 @@ void MemoryCreate() {
   }
 
   // Map the shared memory segment to the process address space
-  shared_memory = mmap(0, SH_MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+  shared_memory = mmap(0, SH_MEMORY_SIZE,
+    PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
 
   if (shared_memory == MAP_FAILED) {
     perror("mmap failed");
@@ -52,7 +53,8 @@ void MemoryCreate() {
 void SigHandler2(int signal) {
     // Increment planes by 5
     planes += 5;
-    // fprintf(stderr, "Signal SIGUSR2 received: Incremented planes by 5. Total planes: %d\n", planes);
+    // fprintf(stderr, "Signal SIGUSR2 received: Incremented planes by 5."
+    //+" Total planes: %d\n", planes);
 }
 
 // TODO(HectorRivera1) 4: Function executed by controller threads
@@ -79,17 +81,20 @@ void* TakeOffsFunction() {
       continue;
     }
 
-    // TODO(HectorRivera1) 5: Synchronize access to shared variables using mutexes
+    // TODO(HectorRivera1) 5:
+    // Synchronize access to shared variables using mutexes
     // Runway found - perform takeoff
     pthread_mutex_lock(&state_lock);
     planes--;
     takeoffs++;
     total_takeoffs++;
-    // fprintf(stderr, "Takeoff from runway %d. Remaining planes: %d\n", current_runway, planes);
+    // fprintf(stderr, "Takeoff from runway %d. "+
+    // "Remaining planes: %d\n", current_runway, planes);
 
     // Signal if 5 takeoffs have occurred
     if (takeoffs == 5) {
-      // fprintf(stderr, "5 takeoffs completed. Sending SIGUSR1 to ground control.\n");
+      // fprintf(stderr, "5 takeoffs completed."+
+      // " Sending SIGUSR1 to ground control.\n");
       kill(shared_memory[1], SIGUSR1);
       kill(shared_memory[2], SIGUSR1);
       takeoffs = 0;

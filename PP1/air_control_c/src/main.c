@@ -9,32 +9,36 @@
 #include "functions.h"
 
 int main() {
-  // TODO(HectorRivera1) 1: Call the function that creates the shared memory segment.
+  // TODO(HectorRivera1) 1:
+  // Call the function that creates the shared memory segment.
   MemoryCreate();
-  // fprintf(stderr, "Shared memory segment created. Main PID: %d\n", shared_memory[0]);
+  // fprintf(stderr, "Shared memory segment created."+
+  // " Main PID: %d\n", shared_memory[0]);
 
-  // TODO(HectorRivera1) 2: Configure the SIGUSR2 signal to increment the planes on the runway
+  // TODO(HectorRivera1) 2:
+  // Configure the SIGUSR2 signal to increment the planes on the runway
   // by 5.
   struct sigaction sa2;
   sa2.sa_handler = SigHandler2;
   sigaction(SIGUSR2, &sa2, NULL);
   // fprintf(stderr, "SIGUSR2 handler configured.\n");
 
-  // TODO(HectorRivera1) 3: Launch the 'radio' executable and, once launched, store its PID in
+  // TODO(HectorRivera1) 3:
+  // Launch the 'radio' executable and, once launched, store its PID in
   // the second position of the shared memory block.
   pid_t radio_pid = fork();
   if (radio_pid == 0) {
     // Store the radio PID in shared memory
     shared_memory[1] = getpid();
     // Child process: Execute the 'radio' program
-    if(execl("./radio", "radio", SH_MEMORY_NAME, NULL) == -1) {
+    if (execl("./radio", "radio", SH_MEMORY_NAME, NULL) == -1) {
       perror("Failed to launch radio process");
       exit(EXIT_FAILURE);
       return 1;
     }
   }
   // fprintf(stderr, "Radio process launched with PID: %d\n", radio_pid);
- 
+
   // pid_t ground_control_pid = fork();
   // if (ground_control_pid == 0) {
   //   // Store the ground control PID in shared memory
@@ -46,13 +50,16 @@ int main() {
   //     return 1;
   //   }
   // }
-  // fprintf(stderr, "Ground Control process launched with PID: %d\n", ground_control_pid);
+  // fprintf(stderr, "Ground Control process"+
+  // " launched with PID: %d\n", ground_control_pid);
 
-  // TODO(HectorRivera1) 4: Launch 5 threads which will be the controllers; each thread will
+  // TODO(HectorRivera1) 4:
+  // Launch 5 threads which will be the controllers; each thread will
   // execute the TakeOffsFunction().
   pthread_t controllers[5];
   for (int i = 0; i < 5; i++) {
-    // TODO(HectorRivera1) 5: Syncronize the controllers using mutexes to avoid race conditions
+    // TODO(HectorRivera1) 5:
+    // Syncronize the controllers using mutexes to avoid race conditions
     // when accessing shared variables. (Happens inside TakeOffsFunction)
     int create = pthread_create(&controllers[i], NULL, TakeOffsFunction, NULL);
     if (create != 0) {
@@ -64,7 +71,7 @@ int main() {
 
   // TODO(HectorRivera1) 6: Send SIGUSR1 once takeoffs reach maximum (20).
   // (Happens inside TakeOffsFunction)
-  
+
   // Wait for all controller threads to finish
   for (int i = 0; i < 5; i++) {
     pthread_join(controllers[i], NULL);

@@ -23,7 +23,7 @@ int traffic = 0;
 #define SH_MEMORY_SIZE sizeof(pid_t) * 3
 pid_t* shared_memory;
 int shm_fd;
- 
+
 void Traffic(int signum) {
   // TODO(HectorRivera1):
   // Calculate the number of waiting planes.
@@ -55,7 +55,8 @@ int main(int argc, char* argv[]) {
   // TODO(HectorRivera1) 1: Open shared memory and store PID
   // fprintf(stderr, "Opening shared memory segment...\n");
   MemoryOpen();
-  // fprintf(stderr, "Shared memory segment opened. Main PID: %d\n", shared_memory[2]);
+  // fprintf(stderr, "Shared memory segment opened."+
+  // " Main PID: %d\n", shared_memory[2]);
 
   // TODO(HectorRivera1) 2: Configure signal handlers
   // SIGTERM
@@ -81,7 +82,8 @@ int main(int argc, char* argv[]) {
     perror("Error setting timer");
     exit(EXIT_FAILURE);
   }
-  // fprintf(stderr, "Timer configured to trigger Traffic function every 500ms.\n");
+  // fprintf(stderr, "Timer configured to trigger "+
+  // "Traffic function every 500ms.\n");
 
   // Keep the program running to handle signals
   // fprintf(stderr, "Entering main loop to handle signals...\n");
@@ -102,7 +104,8 @@ void MemoryOpen() {
   }
 
   // Map shared memory
-  shared_memory = mmap(0, SH_MEMORY_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+  shared_memory = mmap(0, SH_MEMORY_SIZE,
+     PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
   if (shared_memory == MAP_FAILED) {
     perror("mmap failed");
     exit(EXIT_FAILURE);
@@ -122,5 +125,6 @@ void SigHandlerTerm(int signum) {
 
 void SigHandler1(int signum) {
   takeoffs += 5;
-  // fprintf(stderr, "Signal SIGUSR1 received: Takeoffs increased by 5 to %d\n", takeoffs);
+  // fprintf(stderr, "Signal SIGUSR1 received:"+
+  // " Takeoffs increased by 5 to %d\n", takeoffs);
 }
