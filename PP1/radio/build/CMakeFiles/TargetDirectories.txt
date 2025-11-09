@@ -1,0 +1,3 @@
+/home/alejandro/class_examples/2025_F/P1/PP1/radio/build/CMakeFiles/radio.dir
+/home/alejandro/class_examples/2025_F/P1/PP1/radio/build/CMakeFiles/edit_cache.dir
+/home/alejandro/class_examples/2025_F/P1/PP1/radio/build/CMakeFiles/rebuild_cache.dir
